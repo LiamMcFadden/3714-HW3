@@ -1,0 +1,2 @@
+include ':app'
+rootProject.name = "3714-HW3"
