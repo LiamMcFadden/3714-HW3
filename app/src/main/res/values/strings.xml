@@ -1,3 +1,12 @@
 <resources>
-    <string name="app_name">3714-HW3</string>
+    <string name="app_name">Hokie Player</string>
+    <string name="background">Select your background music:</string>
+    <string name="overlap1">Select your first overlap sound:</string>
+    <string name="overlap2">Select your second overlap sound:</string>
+    <string name="overlap3">Select your third overlap sound:</string>
+    <string name="play">Play</string>
+    <string name="restart">Restart</string>
+    <string name="go_tech">Go Tech Go!</string>
+    <string name="enter_sandman">Enter Sandman</string>
+    <string name="tech_triumph">Tech Triumph</string>
 </resources>
