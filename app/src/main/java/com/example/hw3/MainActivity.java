@@ -36,4 +36,7 @@ public class MainActivity extends AppCompatActivity {
         overlap2Text = findViewById(R.id.overlap2);
         overlap3Text = findViewById(R.id.overlap3);
     }
+
+    public void updateName(String musicName) {
+    }
 }

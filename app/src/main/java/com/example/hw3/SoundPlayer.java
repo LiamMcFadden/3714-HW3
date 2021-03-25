@@ -6,6 +6,8 @@ public class SoundPlayer implements MediaPlayer.OnCompletionListener {
     MediaPlayer player;
     int currentPosition = 0;
     int soundIndex = 0;
+    int numDone = 0;
+    int[] order;  // order of sounds to be played
     private int musicStatus = 0;//0: before playing, 1 playing, 2 paused
     private MusicService musicService;
 
@@ -21,8 +23,9 @@ public class SoundPlayer implements MediaPlayer.OnCompletionListener {
             "Go Hokies!"
     };
 
-    public SoundPlayer(MusicService service) {
+    public SoundPlayer(MusicService service, int[] order) {
         this.musicService = service;
+        this.order = order;
     }
 
 
@@ -61,9 +64,17 @@ public class SoundPlayer implements MediaPlayer.OnCompletionListener {
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        player.release();
-        player= null;
+        numDone++;
+        if (numDone == 3) {
+            player.release();
+            player = null;
+        }
+        else {
+            soundIndex = order[numDone];
+            player.release();
+            player = null;
+            playMusic();
+        }
     }
 }
 
-}
