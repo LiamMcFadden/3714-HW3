@@ -4,9 +4,23 @@
     <string name="overlap1">Select your first overlap sound:</string>
     <string name="overlap2">Select your second overlap sound:</string>
     <string name="overlap3">Select your third overlap sound:</string>
+
+    <array name="sounds">
+        <item>Cheering</item>
+        <item>Clapping</item>
+        <item>Go Hokies!</item>
+    </array>
+    <array name="songs">
+        <item>Go Tech Go!</item>
+        <item>Enter Sandman</item>
+        <item>Tech Triumph</item>
+    </array>
     <string name="play">Play</string>
     <string name="restart">Restart</string>
     <string name="go_tech">Go Tech Go!</string>
     <string name="enter_sandman">Enter Sandman</string>
     <string name="tech_triumph">Tech Triumph</string>
+    <string name="content_disc">
+        Image representing current sound.
+    </string>
 </resources>
