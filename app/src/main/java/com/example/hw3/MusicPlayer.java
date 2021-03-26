@@ -1,15 +1,17 @@
 package com.example.hw3;
 
+import android.content.res.Configuration;
 import android.media.MediaPlayer;
 
 public class MusicPlayer implements MediaPlayer.OnCompletionListener {
 
     MediaPlayer player;
-    int time;
+    long time;
     int currentPosition = 0;
     int musicIndex = 0;
     private int musicStatus = 0;//0: before playing, 1 playing, 2 paused
     private MusicService musicService;
+    private PlayFragment playFragment;
 
     static final int[] MUSICPATH = new int[]{
             R.raw.gotechgo,
@@ -34,7 +36,7 @@ public class MusicPlayer implements MediaPlayer.OnCompletionListener {
         this.musicService = service;
     }
 
-    public void setSoundAndTime(int sound, int time) {
+    public void setSoundAndTime(int sound, long time) {
         musicIndex = sound;
         this.time = time;
     }
@@ -42,6 +44,19 @@ public class MusicPlayer implements MediaPlayer.OnCompletionListener {
     public int getMusicStatus() {
 
         return musicStatus;
+    }
+
+    public void setPlayFragment(PlayFragment playFragment) {
+        this.playFragment = playFragment;
+    }
+
+    public void updateFragmentImage(int id) {
+        if (playFragment != null && playFragment.isVisible()) {
+            playFragment.setImageView(id);
+        }
+        else {
+            MainActivity.updateSongImage(id);
+        }
     }
 
     public String getMusicName() {
@@ -57,6 +72,13 @@ public class MusicPlayer implements MediaPlayer.OnCompletionListener {
         player.setOnCompletionListener(this);
         musicService.onUpdateMusicName(getMusicName());
         musicStatus = 1;
+    }
+
+    public void restartMusic() {
+        if (player != null)
+            player.release();
+        musicStatus = 0;
+
     }
 
     public void pauseMusic() {
@@ -78,6 +100,10 @@ public class MusicPlayer implements MediaPlayer.OnCompletionListener {
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         player.release();
+        if (MainActivity.portrait && playFragment != null && playFragment.isVisible())
+            playFragment.setImageView(4);
+        else
+            MainActivity.updateSongImage(4);
         player= null;
     }
 }

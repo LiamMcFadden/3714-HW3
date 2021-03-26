@@ -31,14 +31,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     ImageView soundPic;
     TextView songName, bgroundText, overlap1Text, overlap2Text, overlap3Text;
     SeekBar overlap1Seek, overlap2Seek, overlap3Seek;
+    static ImageView songImage;
 
     /* Sound fields */
-    MusicService musicService;
+    static MusicService musicService;
     MusicCompletionReceiver musicCompletionReceiver;
     Intent startMusicServiceIntent;
     int music;
     int[] sounds;
-    int[] timings;
+    long[] timings;
 
     private PlayFragment playFragment;
 
@@ -47,8 +48,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public static final String MUSIC_PLAYING = "music playing";
     boolean isBound = false;
     boolean isInitialized = false;
-    boolean portrait;
-
+    static boolean portrait;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,9 +57,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         portrait = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
 
+        if (!portrait) songImage = findViewById(R.id.song_image);
         music = 0;
         sounds = new int[3];
-        timings = new int[3];
+        timings = new long[3];
         /* Initialize our views */
         background = findViewById(R.id.background_spinner);
         overlap1 = findViewById(R.id.overlap1_spinner);
@@ -114,6 +115,20 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         if (savedInstanceState != null) {
             isInitialized = savedInstanceState.getBoolean(INITIALIZE_STATUS);
             music = savedInstanceState.getInt(MUSIC_PLAYING);
+            if (!portrait) {
+                songName = findViewById(R.id.song_name);
+                songName.setText(musicService.musicPlayer.getMusicName());
+                switch (musicService.getPlayingStatus()) {
+                    case 1:
+                        playAndPause.setText(R.string.play);
+                        break;
+                    case 2:
+                        playAndPause.setText(R.string.pause);
+                    case 3:
+                        playAndPause.setText(R.string.play);
+                        break;
+                }
+            }
         }
 
         /* initialize sound fields */
@@ -135,6 +150,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             /* Play song and set button text to back */
             if (portrait && view.getId() == start.getId()) {
                 /* get fields */
+                if (playFragment != null)
+                    playFragment.playOrPause.setText(R.string.pause);
                 music = background.getSelectedItemPosition();
                 sounds[0] = overlap1.getSelectedItemPosition() + 3;
                 sounds[1] = overlap2.getSelectedItemPosition() + 3;
@@ -145,7 +162,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     getSupportFragmentManager().beginTransaction()
                             .show(playFragment)
                             .commit();
+                    musicService.setPlayFragment(playFragment);
                     musicService.startMusic();
+                    playFragment.setSongName(musicService.getSongName());
                 }
                 /* go back to edit screen */
                 else {
@@ -154,21 +173,47 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                             .hide(playFragment)
                             .commit();
                 }
-            } else if (!portrait && view.getId() == playAndPause.getId()) {
-                switch (musicService.getPlayingStatus()) {
-                    case 0:
-                        musicService.startMusic();
-                        break;
-                    case 1:
-                        musicService.pauseMusic();
-                        break;
-                    case 2:
-                        musicService.resumeMusic();
-                        break;
-                }
-            } else if (!portrait && view.getId() == restart.getId()) {
-
             }
+            else if (!portrait) {
+                if (view.getId() == playAndPause.getId()) {
+                    switch (musicService.getPlayingStatus()) {
+                        case 0:
+                            musicService.startMusic();
+                            playAndPause.setText(R.string.pause);
+                            break;
+                        case 1:
+                            musicService.pauseMusic();
+                            playAndPause.setText(R.string.play);
+                            break;
+                        case 2:
+                            MainActivity.musicService.resumeMusic();
+                            playAndPause.setText(R.string.pause);
+                            break;
+                    }
+                }
+                else if (view.getId() == restart.getId()) {
+                    musicService.restart();
+                    playAndPause.setText(R.string.play);
+                    songImage.setImageResource(R.drawable.default_img);
+                }
+            }
+        }
+    }
+
+    public static void updateSongImage(int id) {
+        switch (id) {
+            case 1:
+                songImage.setImageResource(R.drawable.cheering);
+                break;
+            case 2:
+                songImage.setImageResource(R.drawable.clapping);
+                break;
+            case 3:
+                songImage.setImageResource(R.drawable.letsgohokes);
+                break;
+            case 4:
+                songImage.setImageResource(R.drawable.default_img);
+                break;
         }
     }
 
@@ -177,9 +222,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         sounds[0] = overlap1.getSelectedItemPosition() + 3;
         sounds[1] = overlap2.getSelectedItemPosition() + 3;
         sounds[2] = overlap3.getSelectedItemPosition() + 3;
-        timings[0] = (overlap1Seek.getProgress() / 100) * SONG_LENGTHS[0];
-        timings[1] = (overlap2Seek.getProgress() / 100) * SONG_LENGTHS[1];
-        timings[2] = (overlap3Seek.getProgress() / 100) * SONG_LENGTHS[2];
+        timings[0] = overlap1Seek.getProgress() * SONG_LENGTHS[music] / 100;
+        timings[1] = overlap2Seek.getProgress() * SONG_LENGTHS[music] / 100;
+        timings[2] = overlap3Seek.getProgress() * SONG_LENGTHS[music] / 100;
     }
 
     public void updateName(String musicName) {
