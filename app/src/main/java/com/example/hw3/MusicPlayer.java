@@ -3,7 +3,9 @@ package com.example.hw3;
 import android.media.MediaPlayer;
 
 public class MusicPlayer implements MediaPlayer.OnCompletionListener {
+
     MediaPlayer player;
+    int time;
     int currentPosition = 0;
     int musicIndex = 0;
     private int musicStatus = 0;//0: before playing, 1 playing, 2 paused
@@ -32,6 +34,10 @@ public class MusicPlayer implements MediaPlayer.OnCompletionListener {
         this.musicService = service;
     }
 
+    public void setSoundAndTime(int sound, int time) {
+        musicIndex = sound;
+        this.time = time;
+    }
 
     public int getMusicStatus() {
 
@@ -44,6 +50,8 @@ public class MusicPlayer implements MediaPlayer.OnCompletionListener {
     }
 
     public void playMusic() {
+        if (player != null)
+            player.release();
         player= MediaPlayer.create(this.musicService, MUSICPATH[musicIndex]);
         player.start();
         player.setOnCompletionListener(this);

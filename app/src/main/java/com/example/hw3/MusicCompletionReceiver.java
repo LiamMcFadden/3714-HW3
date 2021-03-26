@@ -18,8 +18,5 @@ public class MusicCompletionReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        String musicName= intent.getStringExtra(MusicService.MUSICNAME);
-        mainActivity.updateName(musicName);
     }
 }
-

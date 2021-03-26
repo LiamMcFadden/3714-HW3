@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
@@ -22,9 +21,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener, View.OnClickListener {
+public class TestActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener, View.OnClickListener {
 
-    public static final int[] SONG_LENGTHS = {49, 331, 111};
     /* Declare our various views */
     Spinner background, overlap1, overlap2, overlap3;
     Button start, playAndPause, restart;
@@ -36,6 +34,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     MusicService musicService;
     MusicCompletionReceiver musicCompletionReceiver;
     Intent startMusicServiceIntent;
+    boolean isBound = false;
+    boolean isInitialized = false;
     int music;
     int[] sounds;
     int[] timings;
@@ -45,8 +45,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     /* Saved Instance fields */
     public static final String INITIALIZE_STATUS = "initialization status";
     public static final String MUSIC_PLAYING = "music playing";
-    boolean isBound = false;
-    boolean isInitialized = false;
     boolean portrait;
 
 
@@ -60,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         music = 0;
         sounds = new int[3];
         timings = new int[3];
+
         /* Initialize our views */
         background = findViewById(R.id.background_spinner);
         overlap1 = findViewById(R.id.overlap1_spinner);
@@ -124,14 +123,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             isInitialized = true;
         }
 
-        musicCompletionReceiver = new MusicCompletionReceiver(this);
+        //musicCompletionReceiver = new MusicCompletionReceiver(this);
     }
 
     @Override
     public void onClick(View view) {
         if (isBound) {
-            setSoundAndTime();
-            musicService.setSoundAndTime(music, sounds, timings);
             /* Play song and set button text to back */
             if (portrait && view.getId() == start.getId()) {
                 /* get fields */
@@ -145,7 +142,17 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     getSupportFragmentManager().beginTransaction()
                             .show(playFragment)
                             .commit();
-                    musicService.startMusic();
+                    switch (musicService.getPlayingStatus()) {
+                        case 0:
+                            musicService.startMusic();
+                            break;
+                        case 1:
+                            musicService.pauseMusic();
+                            break;
+                        case 2:
+                            musicService.resumeMusic();
+                            break;
+                    }
                 }
                 /* go back to edit screen */
                 else {
@@ -155,31 +162,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                             .commit();
                 }
             } else if (!portrait && view.getId() == playAndPause.getId()) {
-                switch (musicService.getPlayingStatus()) {
-                    case 0:
-                        musicService.startMusic();
-                        break;
-                    case 1:
-                        musicService.pauseMusic();
-                        break;
-                    case 2:
-                        musicService.resumeMusic();
-                        break;
-                }
+
             } else if (!portrait && view.getId() == restart.getId()) {
 
             }
         }
-    }
-
-    private void setSoundAndTime() {
-        music = background.getSelectedItemPosition();
-        sounds[0] = overlap1.getSelectedItemPosition() + 3;
-        sounds[1] = overlap2.getSelectedItemPosition() + 3;
-        sounds[2] = overlap3.getSelectedItemPosition() + 3;
-        timings[0] = (overlap1Seek.getProgress() / 100) * SONG_LENGTHS[0];
-        timings[1] = (overlap2Seek.getProgress() / 100) * SONG_LENGTHS[1];
-        timings[2] = (overlap3Seek.getProgress() / 100) * SONG_LENGTHS[2];
     }
 
     public void updateName(String musicName) {
@@ -188,6 +175,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     protected void onResume() {
         super.onResume();
+
         if(isInitialized && !isBound){
             bindService(startMusicServiceIntent, musicServiceConnection, Context.BIND_AUTO_CREATE);
         }
@@ -228,8 +216,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private ServiceConnection musicServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            MusicService.MyBinder musicBinder = (MusicService.MyBinder) iBinder;
-            musicService = musicBinder.getService();
+            MusicService.MyBinder binder = (MusicService.MyBinder) iBinder;
+            musicService = binder.getService();
             isBound = true;
         }
 
